@@ -3,13 +3,26 @@
 require 'mysql'
 
 class ArtifactoryAnalyzer
-  def self.check_bins(filestore)
-    #filestore = ARGV[0]
+  def self.check_bins(art_home)
+    puts "Artifactory home location: #{art_home}"
+
+    filestore = "#{art_home}/data/filestore"
     puts "Filestore location: #{filestore}"
 
-    #puts File.exists?(filestore)
+    db_props_file = "#{art_home}/etc/storage.properties"
 
-    con = Mysql.new 'localhost', 'root', '', 'artdb3'
+    db_props = {}
+    IO.foreach(db_props_file) do |line|
+      db_props[$1.strip] = $2 if line =~ /([^=]*)=(.*)/
+    end
+    #puts "DB Properties: #{db_props}"
+    puts "Connection URL: #{db_props['url']}"
+
+    # URL pattern jdbc:mysql://HOST:PORT/DB)NAME?PARAMS
+    db_host, db_name = db_props['url'].match(/dbc:mysql:\/\/(.*):.*\/(.*)\?.*/).captures
+    puts "DB Host: #{db_host} Name: #{db_name}"
+
+    con = Mysql.new "#{db_host}", "#{db_props['username']}", "#{db_props['password']}", "#{db_name}"
     rs = con.query 'SELECT VERSION()'
     puts "Database version: #{rs.fetch_row[0]}"
 
