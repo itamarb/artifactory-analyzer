@@ -1,0 +1,5 @@
+#!/usr/bin/ruby
+
+require 'artifactory/analyzer'
+
+Artifactory::Analyzer.check_bins(ARGV[0])
